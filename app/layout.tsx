@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import "./globals.css";
 import type { Metadata } from "next";
 import Provider from './provider';
+import { Toaster, ToastViewport } from '@/components/ui/toast';
 
 export const metadata: Metadata = {
   title: "Next.js Premium Startup Boilerplate",
@@ -34,6 +35,7 @@ export default function RootLayout({
           <Provider>
             {children}
           </Provider>
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>
