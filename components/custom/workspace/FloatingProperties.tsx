@@ -377,7 +377,7 @@ function FloatingProperties({
 
         <Popover>
 
-          <PopoverTrigger >
+          <PopoverTrigger>
 
             <ToolbarButton
               title={
@@ -492,7 +492,7 @@ function FloatingProperties({
 
         <Popover>
 
-          <PopoverTrigger >
+          <PopoverTrigger>
 
             <ToolbarButton
               title="Fill color"
@@ -636,7 +636,7 @@ function FloatingProperties({
 
         <Popover>
 
-          <PopoverTrigger >
+          <PopoverTrigger>
 
             <ToolbarButton
               title="Alignment"
@@ -747,7 +747,7 @@ function FloatingProperties({
 
         <Popover>
 
-          <PopoverTrigger >
+          <PopoverTrigger>
 
             <ToolbarButton
               title="Stroke width"
@@ -909,7 +909,7 @@ function FloatingProperties({
         onOpenChange={setMoreOpen}
       >
 
-        <PopoverTrigger >
+        <PopoverTrigger>
 
           <ToolbarButton
             title="More options"
@@ -2154,8 +2154,9 @@ function ToolbarButton({
 
   return (
 
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
 
       title={title}
 
@@ -2173,6 +2174,7 @@ function ToolbarButton({
 
             transition-all
             duration-150
+            cursor-pointer
 
             ${danger
           ? `
@@ -2194,7 +2196,7 @@ function ToolbarButton({
         `}
     >
       {children}
-    </button>
+    </div>
 
   )
 

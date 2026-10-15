@@ -92,11 +92,12 @@ const Excalidraw = dynamic(
   },
 );
 
-type Props={
-  onApiReady:(api:ExcalidrawImperativeAPI)=>void;
+type Props = {
+  onApiReady: (api: ExcalidrawImperativeAPI) => void;
+  initialData?: any;
 }
 
-function Whiteboard({onApiReady}:Props) {
+function Whiteboard({ onApiReady, initialData }: Props) {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
   const [activeTool, setActiveTool] = useState("selection");
@@ -117,7 +118,7 @@ function Whiteboard({onApiReady}:Props) {
       isSavingRef.current = true;
       try {
         await axios.post("/api/whiteboard", {
-          elements,
+          elements: elements.filter((el: any) => !el.isDeleted),
           appState,
           files,
           projectId: projectid,
@@ -310,15 +311,16 @@ function Whiteboard({onApiReady}:Props) {
     <div style={{ height: "90vh", position: "relative" }}>
       <Excalidraw
         // @ts-ignore
-        excalidrawAPI={(api) => {setExcalidrawAPI(api); onApiReady(api)}}
+        excalidrawAPI={(api) => { setExcalidrawAPI(api); api && onApiReady(api); }}
         onChange={handleCanvasChange}
+        initialData={initialData}
       />
 
       <div className="absolute left-4 top-1/2 z-50 -translate-y-1/2 flex flex-col gap-1 rounded-2xl bg-white border p-1.5 shadow-xl">
-        {tools.map((tool) => {
+        {tools.map((tool, index) => {
           const Icon = tool.icon;
           return (
-            <button
+            <button key={index}
               className={` flex h-10 w-10 items-center justify-center rounded-xl transition
             hover:bg-primary/10 hover:cursor-pointer
             ${activeTool === tool.name ? "bg-primary/10" : null}
