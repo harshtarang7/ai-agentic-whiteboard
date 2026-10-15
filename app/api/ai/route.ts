@@ -66,12 +66,12 @@ Return ONLY a valid JSON object with exactly this structure, no markdown, no exp
     "width": total estimated width in pixels as a number,
     "success": true,
     "elements": [ ...array of Excalidraw shape elements... ],
-    "connections": [ ...array of Excalidraw arrow/line elements connecting shapes... ]
+    "connections": [ ...array of Excalidraw arrow/line elements connecting shapes... ],
   }
 }
 
 `
-;
+        ;
 
     const response = await ollama.chat({
         model: process.env.AI_MODEL ?? 'qwen2.5-coder:7b',
