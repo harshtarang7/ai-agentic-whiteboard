@@ -17,11 +17,14 @@ import {
   Minus,
   MousePointer2,
   Pencil,
+  Sparkles,
   Square,
   Type,
 } from "lucide-react";
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import FloatingProperties from "./FloatingProperties";
+import { Button } from "@/components/ui/button";
+import AiFloatingSidebar from "./AiFloatingSidebar";
 
 const tools = [
   {
@@ -89,34 +92,27 @@ const Excalidraw = dynamic(
   },
 );
 
-function Whiteboard() {
+type Props={
+  onApiReady:(api:ExcalidrawImperativeAPI)=>void;
+}
+
+function Whiteboard({onApiReady}:Props) {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
   const [activeTool, setActiveTool] = useState("selection");
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [canvasState, setCanvasState] = useState<any>(null);
+  const [showAiSidebar, setShowAiSidebar] = useState(true)
 
   const saveTimeRef = useRef<any>(null);
   const isSavingRef = useRef(false);
+  const lastSavedElementsRef = useRef<string>("");
   const { projectid } = useParams<{ projectid: string }>();
   console.log(projectid);
 
   const saveCanvasChanges = useCallback(
     async (elements: readonly any[], appState: any, files: any) => {
       if (isSavingRef.current) return;
-
-      setCanvasState(appState);
-
-      const selectedIds = Object.keys(appState.selectedElementIds || {});
-
-      if (selectedIds?.length === 1) {
-        const element = elements.find(
-          (element) => element.id == selectedIds[0],
-        );
-        setSelectedElement(element);
-      } else {
-        setSelectedElement(null);
-      }
 
       isSavingRef.current = true;
       try {
@@ -125,11 +121,6 @@ function Whiteboard() {
           appState,
           files,
           projectId: projectid,
-        });
-
-        toast.add({
-          title: "Changes saved",
-          type: "success",
         });
       } catch (error) {
         console.error("Failed to save whiteboard:", error);
@@ -147,9 +138,27 @@ function Whiteboard() {
 
   const handleCanvasChange = useCallback(
     (elements: readonly any[], appState: any, files: any) => {
-      if (saveTimeRef.current) {
-        clearTimeout(saveTimeRef.current);
+      // Update UI state immediately (no debounce needed — doesn't trigger a save)
+      setCanvasState(appState);
+
+      const selectedIds = Object.keys(appState.selectedElementIds || {});
+      if (selectedIds?.length === 1) {
+        const element = elements.find((el) => el.id === selectedIds[0]);
+        setSelectedElement(element ?? null);
+      } else {
+        setSelectedElement(null);
       }
+
+      // Only save to server when elements actually changed (ignore scroll/zoom/selection)
+      const elementsSnapshot = JSON.stringify(
+        elements.filter((el) => !el.isDeleted).map((el) => ({ id: el.id, version: el.version }))
+      );
+
+      if (elementsSnapshot === lastSavedElementsRef.current) return;
+
+      lastSavedElementsRef.current = elementsSnapshot;
+
+      if (saveTimeRef.current) clearTimeout(saveTimeRef.current);
 
       saveTimeRef.current = setTimeout(() => {
         void saveCanvasChanges(elements, appState, files);
@@ -298,10 +307,10 @@ function Whiteboard() {
 
   const floatingPosition = getFloatingPosition();
   return (
-    <div style={{ height: "90vh" }}>
+    <div style={{ height: "90vh", position: "relative" }}>
       <Excalidraw
         // @ts-ignore
-        excalidrawAPI={(api) => setExcalidrawAPI(api)}
+        excalidrawAPI={(api) => {setExcalidrawAPI(api); onApiReady(api)}}
         onChange={handleCanvasChange}
       />
 
@@ -330,6 +339,14 @@ function Whiteboard() {
         onSendToBack={() => handleBringFrontBack('back')}
 
       />
+
+      <div className="absolute right-15 bottom-3 z-50">
+        <Button size={'lg'} onClick={() => setShowAiSidebar(!showAiSidebar)}>
+          <Sparkles /> AI
+        </Button>
+      </div>
+
+      {showAiSidebar && <AiFloatingSidebar excalidrawApi={excalidrawAPI} onClose={() => setShowAiSidebar(false)} />}
     </div>
   );
 }
